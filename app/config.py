@@ -24,7 +24,7 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
-    SECRET_KEY = os.environ.get("SECRET_KEY")
+    SECRET_KEY = os.environ.get("SECRET_KEY", "prod-secret-key-change-in-env")
 
 config_by_name = {
     "development": DevelopmentConfig,

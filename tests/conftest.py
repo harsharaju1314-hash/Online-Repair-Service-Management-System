@@ -9,7 +9,7 @@ import pytest
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 from app import create_app
-from app.db import init_db, seed_db, get_db
+from app.db import init_db, seed_db
 
 @pytest.fixture
 def app():

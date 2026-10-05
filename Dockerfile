@@ -5,7 +5,9 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_ENV=production
+ENV HOST=0.0.0.0
 ENV PORT=5000
+ENV SECRET_KEY=docker-production-secret-key-12345
 
 # Set working directory inside container
 WORKDIR /app

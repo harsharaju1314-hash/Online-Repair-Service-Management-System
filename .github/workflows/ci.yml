@@ -28,10 +28,7 @@ jobs:
 
       - name: Code Quality & Linting (Flake8)
         run: |
-          # Stop build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Exit-zero treats all warnings as non-fatal
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 .
 
       - name: Run Pytest Test Suite
         run: |
@@ -46,15 +43,15 @@ jobs:
 
       - name: Container Liveness & Health Verification
         run: |
-          # Start container in detached background mode
-          docker run -d --name repair-app -p 5000:5000 -e SECRET_KEY="ci-test-key" online-repair-service:latest
+          # Launch container in background
+          docker run -d --name repair-app -p 5000:5000 -e HOST=0.0.0.0 -e PORT=5000 -e SECRET_KEY="ci-test-key-12345" online-repair-service:latest
           
-          # Wait for container startup
-          sleep 4
+          # Allow container startup
+          sleep 5
+
+          # Probe /health endpoint
+          curl --fail --retry 5 --retry-delay 2 http://localhost:5000/health || (docker logs repair-app && exit 1)
           
-          # Verify /health endpoint returns 200 OK
-          curl --fail --retry 5 --retry-delay 2 http://127.0.0.1:5000/health || (docker logs repair-app && exit 1)
-          
-          # Clean up container
+          # Cleanup
           docker stop repair-app
           docker rm repair-app

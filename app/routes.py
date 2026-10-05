@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
+    Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.security import generate_password_hash
 from app.auth import login_required, role_required, log_activity
@@ -382,7 +382,6 @@ def manage_request(request_id):
             if not new_status or (new_status not in allowed_next and new_status != req['status']):
                 flash(f"Invalid transition from {req['status']} to {new_status}. Allowed: {', '.join(allowed_next) or 'None'}", "danger")
             else:
-                resolved_timestamp = "CURRENT_TIMESTAMP" if new_status == 'RESOLVED' else "NULL"
                 if new_status == 'RESOLVED':
                     execute_db(
                         "UPDATE repair_requests SET status = ?, resolved_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
