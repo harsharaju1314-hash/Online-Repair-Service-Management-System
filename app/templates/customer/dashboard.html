@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Dashboard - RepairHub{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2>Welcome, {{ g.user.username }}</h2>
+        <p style="color: #64748b; font-size: 0.95rem;">Track your active service appointments and submit new repair requests.</p>
+    </div>
+    <a href="{{ url_for('routes.new_request') }}" class="btn btn-primary">+ Submit Repair Request</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">My Service Requests</h3>
+        <span style="font-size: 0.85rem; color: #64748b;">Total: {{ requests|length }}</span>
+    </div>
+
+    {% if requests %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Req #</th>
+                        <th>Category</th>
+                        <th>Issue Summary</th>
+                        <th>Preferred Date</th>
+                        <th>Status</th>
+                        <th>SLA Status</th>
+                        <th>Assigned Tech</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                        <tr>
+                            <td><strong>#{{ req.id }}</strong></td>
+                            <td>{{ req.category_name }}</td>
+                            <td>
+                                <strong>{{ req.title }}</strong><br>
+                                <small style="color: #64748b;">{{ req.description[:50] }}{% if req.description|length > 50 %}...{% endif %}</small>
+                            </td>
+                            <td>{{ req.preferred_date }}<br><small style="color: #64748b;">{{ req.preferred_time_slot }}</small></td>
+                            <td>
+                                <span class="badge badge-{{ req.status.lower() }}">{{ req.status }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {{ req.sla.badge_class }}">{{ req.sla.status }}</span>
+                            </td>
+                            <td>{{ req.technician_name or 'Unassigned' }}</td>
+                            <td>
+                                <a href="{{ url_for('routes.view_request', request_id=req.id) }}" class="btn btn-secondary btn-sm">View Details</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 2.5rem 1rem; color: #64748b;">
+            <p style="font-size: 1.1rem; margin-bottom: 1rem;">You have not submitted any repair requests yet.</p>
+            <a href="{{ url_for('routes.new_request') }}" class="btn btn-primary">Create Your First Request</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

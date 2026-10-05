@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Staff Dashboard - RepairHub{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2>Service Staff Triage & Operations</h2>
+        <p style="color: #64748b; font-size: 0.95rem;">Manage repair request lifecycles, dispatch technicians, and monitor SLA compliance.</p>
+    </div>
+</div>
+
+<!-- Metrics Strip -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ counts.total }}</div>
+        <div class="stat-label">Total Requests</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #2563eb;">{{ counts.open }}</div>
+        <div class="stat-label">Active / Open</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #ea580c;">{{ counts.approaching }}</div>
+        <div class="stat-label">Approaching SLA</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #dc2626;">{{ counts.breached }}</div>
+        <div class="stat-label">SLA Breached</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #16a34a;">{{ counts.resolved }}</div>
+        <div class="stat-label">Resolved / Closed</div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card" style="padding: 1rem 1.5rem; margin-bottom: 1.5rem;">
+    <form method="GET" action="{{ url_for('routes.dashboard') }}" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 180px;">
+            <label for="status" style="font-size: 0.8rem;">Filter by Status</label>
+            <select name="status" id="status">
+                <option value="">-- All Statuses --</option>
+                <option value="REQUESTED" {% if status_filter == 'REQUESTED' %}selected{% endif %}>REQUESTED</option>
+                <option value="ASSIGNED" {% if status_filter == 'ASSIGNED' %}selected{% endif %}>ASSIGNED</option>
+                <option value="SCHEDULED" {% if status_filter == 'SCHEDULED' %}selected{% endif %}>SCHEDULED</option>
+                <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>IN_PROGRESS</option>
+                <option value="RESOLVED" {% if status_filter == 'RESOLVED' %}selected{% endif %}>RESOLVED</option>
+                <option value="CLOSED" {% if status_filter == 'CLOSED' %}selected{% endif %}>CLOSED</option>
+                <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>CANCELLED</option>
+            </select>
+        </div>
+
+        <div style="flex: 1; min-width: 180px;">
+            <label for="priority" style="font-size: 0.8rem;">Filter by Priority</label>
+            <select name="priority" id="priority">
+                <option value="">-- All Priorities --</option>
+                <option value="HIGH" {% if priority_filter == 'HIGH' %}selected{% endif %}>HIGH (8h SLA)</option>
+                <option value="MEDIUM" {% if priority_filter == 'MEDIUM' %}selected{% endif %}>MEDIUM (24h SLA)</option>
+                <option value="LOW" {% if priority_filter == 'LOW' %}selected{% endif %}>LOW (48h SLA)</option>
+            </select>
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-secondary btn-sm" style="height: 38px;">Apply Filters</button>
+            <a href="{{ url_for('routes.dashboard') }}" class="btn btn-secondary btn-sm" style="height: 38px;">Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- Requests Table -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Repair Queue</h3>
+    </div>
+
+    {% if requests %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Req #</th>
+                        <th>Customer</th>
+                        <th>Category</th>
+                        <th>Issue Summary</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>SLA Compliance</th>
+                        <th>Assigned Tech</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                        <tr {% if req.sla.is_breached and req.status not in ('RESOLVED', 'CLOSED', 'CANCELLED') %}style="background: #fff1f2;"{% endif %}>
+                            <td><strong>#{{ req.id }}</strong></td>
+                            <td>{{ req.customer_username }}</td>
+                            <td>{{ req.category_name }}</td>
+                            <td>
+                                <strong>{{ req.title }}</strong><br>
+                                <small style="color: #64748b;">{{ req.description[:45] }}{% if req.description|length > 45 %}...{% endif %}</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-priority-{{ req.priority.lower() }}">{{ req.priority }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ req.status.lower() }}">{{ req.status }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {{ req.sla.badge_class }}">{{ req.sla.status }}</span><br>
+                                <small style="color: #64748b;">{{ req.sla.elapsed_hours }}h / {{ req.sla.sla_target_hours }}h</small>
+                            </td>
+                            <td>{{ req.technician_name or 'Unassigned' }}</td>
+                            <td>
+                                <a href="{{ url_for('routes.manage_request', request_id=req.id) }}" class="btn btn-primary btn-sm">Triage / Manage</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; padding: 2rem; color: #64748b;">No repair requests match the selected filters.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Request #{{ req.id }} - RepairHub{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2>Repair Request #{{ req.id }}: {{ req.title }}</h2>
+        <p style="color: #64748b; font-size: 0.9rem;">Submitted on {{ req.created_at }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('routes.dashboard') }}" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+        {% if g.user_role in ('staff', 'admin') %}
+            <a href="{{ url_for('routes.manage_request', request_id=req.id) }}" class="btn btn-primary btn-sm">Manage / Triage</a>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <!-- Left Column: Details & Timeline -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Issue Details</h3>
+                <span class="badge badge-{{ req.status.lower() }}">{{ req.status }}</span>
+            </div>
+            
+            <p style="font-size: 1rem; margin-bottom: 1.25rem; white-space: pre-wrap;">{{ req.description }}</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.9rem;">
+                <div>
+                    <strong>Category:</strong> {{ req.category_name }}<br>
+                    <strong>Priority:</strong> <span class="badge badge-priority-{{ req.priority.lower() }}">{{ req.priority }}</span>
+                </div>
+                <div>
+                    <strong>Preferred Window:</strong><br>
+                    {{ req.preferred_date }} ({{ req.preferred_time_slot }})
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Service Timeline & Updates</h3>
+            </div>
+            {% if updates %}
+                <ul class="timeline">
+                    {% for u in updates %}
+                        <li class="timeline-item">
+                            <div class="timeline-time">{{ u.created_at }} &bull; {{ u.username or 'System' }} ({{ u.user_role or 'system' }})</div>
+                            <div class="timeline-content">
+                                <strong>Status: {{ u.new_status }}</strong><br>
+                                {{ u.notes }}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="color: #64748b; font-size: 0.9rem;">No status updates yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: SLA, Assigned Tech, Appointments & Actions -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">SLA Status</h3>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <span class="badge {{ sla.badge_class }}" style="font-size: 0.9rem; padding: 0.35rem 0.75rem;">{{ sla.status }}</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #475569; margin-bottom: 0.5rem;">
+                <strong>SLA Target:</strong> {{ sla.sla_target_hours }} hours<br>
+                <strong>Elapsed:</strong> {{ sla.elapsed_hours }} hours<br>
+                <strong>Remaining:</strong> {{ sla.remaining_hours }} hours
+            </p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Assigned Technician</h3>
+            </div>
+            {% if req.technician_name %}
+                <p style="font-size: 0.95rem; font-weight: 600;">{{ req.technician_name }}</p>
+                <p style="font-size: 0.85rem; color: #64748b;">Phone: {{ req.technician_phone or 'N/A' }}</p>
+            {% else %}
+                <p style="color: #64748b; font-size: 0.9rem;">Technician not assigned yet. Our service staff will assign a technician shortly.</p>
+            {% endif %}
+        </div>
+
+        {% if appointments %}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Scheduled Appointment</h3>
+                </div>
+                {% for appt in appointments %}
+                    <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">
+                        <strong>Date:</strong> {{ appt.appointment_date }}<br>
+                        <strong>Slot:</strong> {{ appt.time_slot }}<br>
+                        <strong>Status:</strong> <span class="badge badge-{{ appt.status.lower() }}">{{ appt.status }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if req.status in ('REQUESTED', 'ASSIGNED', 'SCHEDULED') %}
+            <div class="card" style="border-color: #fecaca; background: #fffbfb;">
+                <div class="card-header" style="border-color: #fee2e2;">
+                    <h3 class="card-title" style="color: #991b1b;">Cancel Request</h3>
+                </div>
+                <form method="POST" action="{{ url_for('routes.cancel_request', request_id=req.id) }}" onsubmit="return confirm('Are you sure you want to cancel this repair request?');">
+                    <div class="form-group">
+                        <label for="cancel_reason" style="font-size: 0.825rem;">Reason for cancellation</label>
+                        <input type="text" id="cancel_reason" name="cancel_reason" placeholder="Issue resolved / Changed mind" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger btn-sm" style="width: 100%;">Cancel Request</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

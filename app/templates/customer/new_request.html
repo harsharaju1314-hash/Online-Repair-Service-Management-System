@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}New Repair Request - RepairHub{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 1.5rem auto;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Submit a New Repair Request</h2>
+            <a href="{{ url_for('routes.dashboard') }}" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+        </div>
+
+        <form method="POST" action="{{ url_for('routes.new_request') }}">
+            <div class="form-group">
+                <label for="category_id">Repair / Service Category</label>
+                <select id="category_id" name="category_id" required>
+                    <option value="" disabled selected>-- Select a Category --</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }} - {{ cat.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="title">Issue Summary (Title)</label>
+                <input type="text" id="title" name="title" required placeholder="e.g. Washing machine leaking during spin cycle" minlength="5" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Detailed Description of the Problem</label>
+                <textarea id="description" name="description" rows="4" required placeholder="Please describe the symptoms, brand/model, and any error codes..." minlength="10"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="preferred_date">Preferred Service Date</label>
+                    <input type="date" id="preferred_date" name="preferred_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="preferred_time_slot">Preferred Time Slot</label>
+                    <select id="preferred_time_slot" name="preferred_time_slot" required>
+                        <option value="09:00 AM - 12:00 PM">09:00 AM - 12:00 PM</option>
+                        <option value="12:00 PM - 03:00 PM">12:00 PM - 03:00 PM</option>
+                        <option value="03:00 PM - 06:00 PM">03:00 PM - 06:00 PM</option>
+                        <option value="06:00 PM - 08:00 PM">06:00 PM - 08:00 PM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <a href="{{ url_for('routes.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Submit Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - RepairHub{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2>System Administration & SLA Overview</h2>
+        <p style="color: #64748b; font-size: 0.95rem;">Monitor global SLA compliance, service metrics, and system activity.</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+        <a href="{{ url_for('routes.admin_categories') }}" class="btn btn-secondary btn-sm">Manage Categories</a>
+        <a href="{{ url_for('routes.admin_users') }}" class="btn btn-secondary btn-sm">Manage Users</a>
+        <a href="{{ url_for('routes.admin_logs') }}" class="btn btn-secondary btn-sm">Audit Logs</a>
+    </div>
+</div>
+
+<!-- Admin Stat Grid -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ counts.total }}</div>
+        <div class="stat-label">Total Requests</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #2563eb;">{{ counts.open }}</div>
+        <div class="stat-label">Open / In Progress</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #dc2626;">{{ counts.breached }}</div>
+        <div class="stat-label">SLA Breached</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" style="color: #16a34a;">{{ counts.resolved }}</div>
+        <div class="stat-label">Resolved / Closed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ users_count }}</div>
+        <div class="stat-label">Registered Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ techs_count }}</div>
+        <div class="stat-label">Technicians</div>
+    </div>
+</div>
+
+<!-- Requests Table with SLA Highlights -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">All Service Requests</h3>
+    </div>
+
+    {% if requests %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Category</th>
+                        <th>Summary</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>SLA Status</th>
+                        <th>Assigned Tech</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                        <tr {% if req.sla.is_breached and req.status not in ('RESOLVED', 'CLOSED', 'CANCELLED') %}style="background: #fff1f2;"{% endif %}>
+                            <td><strong>#{{ req.id }}</strong></td>
+                            <td>{{ req.customer_username }}</td>
+                            <td>{{ req.category_name }}</td>
+                            <td>
+                                <strong>{{ req.title }}</strong><br>
+                                <small style="color: #64748b;">{{ req.description[:45] }}...</small>
+                            </td>
+                            <td><span class="badge badge-priority-{{ req.priority.lower() }}">{{ req.priority }}</span></td>
+                            <td><span class="badge badge-{{ req.status.lower() }}">{{ req.status }}</span></td>
+                            <td>
+                                <span class="badge {{ req.sla.badge_class }}">{{ req.sla.status }}</span><br>
+                                <small style="color: #64748b;">{{ req.sla.elapsed_hours }}h / {{ req.sla.sla_target_hours }}h</small>
+                            </td>
+                            <td>{{ req.technician_name or 'Unassigned' }}</td>
+                            <td>
+                                <a href="{{ url_for('routes.manage_request', request_id=req.id) }}" class="btn btn-secondary btn-sm">Inspect</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; padding: 2rem; color: #64748b;">No service requests found.</p>
+    {% endif %}
+</div>
+{% endblock %}

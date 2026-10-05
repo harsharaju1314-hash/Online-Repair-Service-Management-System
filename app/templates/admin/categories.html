@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Categories - Admin{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2>Service Categories Management</h2>
+        <p style="color: #64748b; font-size: 0.95rem;">Configure available repair categories and services.</p>
+    </div>
+    <a href="{{ url_for('routes.dashboard') }}" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+    <!-- Create Category Form -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Add New Category</h3>
+        </div>
+        <form method="POST" action="{{ url_for('routes.admin_categories') }}">
+            <input type="hidden" name="action" value="create">
+            <div class="form-group">
+                <label for="name">Category Name</label>
+                <input type="text" id="name" name="name" required placeholder="e.g. Smart Home Installation">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3" placeholder="Brief description of service offerings..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">Create Category</button>
+        </form>
+    </div>
+
+    <!-- Category List Table -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Existing Categories</h3>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in categories %}
+                        <tr>
+                            <td>#{{ cat.id }}</td>
+                            <td><strong>{{ cat.name }}</strong></td>
+                            <td><small style="color: #64748b;">{{ cat.description }}</small></td>
+                            <td>
+                                {% if cat.is_active == 1 %}
+                                    <span class="badge badge-success">Active</span>
+                                {% else %}
+                                    <span class="badge badge-cancelled">Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('routes.admin_categories') }}" style="display: inline;">
+                                    <input type="hidden" name="action" value="toggle">
+                                    <input type="hidden" name="category_id" value="{{ cat.id }}">
+                                    <input type="hidden" name="current_status" value="{{ cat.is_active }}">
+                                    <button type="submit" class="btn btn-secondary btn-sm">
+                                        {{ 'Disable' if cat.is_active == 1 else 'Enable' }}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

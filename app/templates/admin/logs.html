@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}System Audit Logs - Admin{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2>System Activity & Audit Logs</h2>
+        <p style="color: #64748b; font-size: 0.95rem;">Review security events, request status transitions, and user actions.</p>
+    </div>
+    <a href="{{ url_for('routes.dashboard') }}" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+</div>
+
+<!-- Log Filter -->
+<div class="card" style="padding: 1rem 1.5rem; margin-bottom: 1.5rem;">
+    <form method="GET" action="{{ url_for('routes.admin_logs') }}" style="display: flex; gap: 1rem; align-items: flex-end;">
+        <div style="flex: 1; max-width: 300px;">
+            <label for="event_type" style="font-size: 0.8rem;">Filter by Event Type</label>
+            <select name="event_type" id="event_type">
+                <option value="">-- All Event Types --</option>
+                <option value="LOGIN_SUCCESS" {% if event_filter == 'LOGIN_SUCCESS' %}selected{% endif %}>LOGIN_SUCCESS</option>
+                <option value="LOGIN_FAILED" {% if event_filter == 'LOGIN_FAILED' %}selected{% endif %}>LOGIN_FAILED</option>
+                <option value="USER_REGISTERED" {% if event_filter == 'USER_REGISTERED' %}selected{% endif %}>USER_REGISTERED</option>
+                <option value="REQUEST_CREATED" {% if event_filter == 'REQUEST_CREATED' %}selected{% endif %}>REQUEST_CREATED</option>
+                <option value="REQUEST_ASSIGNED" {% if event_filter == 'REQUEST_ASSIGNED' %}selected{% endif %}>REQUEST_ASSIGNED</option>
+                <option value="APPOINTMENT_SCHEDULED" {% if event_filter == 'APPOINTMENT_SCHEDULED' %}selected{% endif %}>APPOINTMENT_SCHEDULED</option>
+                <option value="STATUS_UPDATED" {% if event_filter == 'STATUS_UPDATED' %}selected{% endif %}>STATUS_UPDATED</option>
+                <option value="REQUEST_CANCELLED" {% if event_filter == 'REQUEST_CANCELLED' %}selected{% endif %}>REQUEST_CANCELLED</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-secondary btn-sm" style="height: 38px;">Filter Logs</button>
+        <a href="{{ url_for('routes.admin_logs') }}" class="btn btn-secondary btn-sm" style="height: 38px;">Clear</a>
+    </form>
+</div>
+
+<!-- Logs Table -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Recent Audit Log Entries</h3>
+    </div>
+    {% if logs %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Log ID</th>
+                        <th>Timestamp</th>
+                        <th>Event Type</th>
+                        <th>Actor (User)</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in logs %}
+                        <tr>
+                            <td>#{{ l.id }}</td>
+                            <td><small style="color: #64748b;">{{ l.created_at }}</small></td>
+                            <td><span class="badge badge-info">{{ l.event_type }}</span></td>
+                            <td>{{ l.username or 'Anonymous' }}</td>
+                            <td>{{ l.details }}</td>
+                            <td><small style="color: #64748b;">{{ l.ip_address or '127.0.0.1' }}</small></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p style="text-align: center; padding: 2rem; color: #64748b;">No log records found.</p>
+    {% endif %}
+</div>
+{% endblock %}
